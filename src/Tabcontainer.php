@@ -51,7 +51,7 @@ class tabcontainer extends \booosta\ui\UI
         $contentcode = "<div class=\"tab-pane {contentclass}\" id=\"{divid}\" role=\"tabpanel\" aria-labelledby=\"{divid}-tab\">{content}</div>\n";
       break;
       default:
-        $headcode = '<div class="card card-primary card-tabs"><div class="card-header p-0 pt-1"><ul class="nav nav-tabs" id="custom-tabs-two-tab" role="tablist">' . "\n";
+        $headcode = '<div class="card card-primary card-tabs card-outline card-outline-tabs"><div class="card-header p-0 pt-1"><ul class="nav nav-tabs" id="custom-tabs-two-tab" role="tablist">' . "\n";
         $titlecode = "<li class=\"pt-2 px-3\"><h3 class=\"card-title\">$this->title</h3></li>\n";
         $intermediatecode = "</ul></div>\n<div class=\"card-body\"><div class=\"tab-content\" id=\"custom-tabs-two-tabContent\">\n";
         $footcode = "</div></div></div>\n";
