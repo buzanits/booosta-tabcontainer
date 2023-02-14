@@ -25,18 +25,17 @@ class tabcontainer extends \booosta\ui\UI
 
   public function get_js() 
   { 
-    return '';  // todo
+    #return '$("#vert-tabs-tab").on("click", function(e) { console.log(e); })';
     #\booosta\debug($this->tabs);
-    if($this->type == 'vertical'):
-      $extra = '.addClass("ui-tabs-vertical ui-helper-clearfix")';
-      $class = '$("#tabsvert > ul > li").removeClass("ui-corner-top").addClass("ui-corner-left");';
-    endif;
+    $js = '';
 
     if($this->tabsaver)
-      return "$(function() { $('#tabcontainer_$this->id').tabs({ active: $active, 
-                activate: function(event, ui) { $.ajax('lib/modules/tabcontainer/savetab.php?id=$this->id&tab=' + ui.newTab.index()); } })$extra; }); $class";
+      foreach($this->tabs as $idx=>$tab):
+        $divid = 'tab' . md5($tab['name'] . $this->id);
+        $js .= "$('#$divid-tab').on('click', function(e) { var tabid = e.currentTarget.attributes.id.nodeValue; $.ajax('vendor/booosta/tabcontainer/src/savetab.php?id=$this->id&tab=' + tabid); }); ";
+      endforeach;
 
-    return "$(function() { $('#tabcontainer_$this->id').tabs({ active: $active })$extra }); $class";
+    return $js;
   }
 
   public function get_htmlonly()
@@ -55,15 +54,16 @@ class tabcontainer extends \booosta\ui\UI
         $titlecode = "<li class=\"pt-2 px-3\"><h3 class=\"card-title\">$this->title</h3></li>\n";
         $intermediatecode = "</ul></div>\n<div class=\"card-body\"><div class=\"tab-content\" id=\"custom-tabs-two-tabContent\">\n";
         $footcode = "</div></div></div>\n";
-        $tabcode = "<li class=\"nav-item\"><a class=\"nav-link {tabclass}\" id=\"{divid-tab}\" data-toggle=\"pill\" href=\"#{divid}\" role=\"tab\" 
+        $tabcode = "<li class=\"nav-item\"><a class=\"nav-link {tabclass}\" id=\"{divid}-tab\" data-toggle=\"pill\" href=\"#{divid}\" role=\"tab\" 
                     aria-controls=\"{divid}\" aria-selected=\"{selected}\">{label}</a></li>\n";
         $contentcode = "<div class=\"tab-pane {contentclass}\" id=\"{divid}\" role=\"tabpanel\" aria-labelledby=\"{divid}-tab\">{content}</div>\n";
     endswitch;
 
     $active = null;
-    foreach($this->tabs as $index=>$tab) if($tab['selected']) $active = $index;
+    foreach($this->tabs as $index=>$tab) if($tab['selected']) $active = 'tab' . md5($tab['name'] . $this->id);
     if($active === null) $active = $_SESSION["savedtab_tabcontainer_$this->id"];
     if($active === null) $active = 0;
+    #b::debug("id: $this->id, active: $active");
 
     $code = '';
     $code .= $headcode;
@@ -72,11 +72,21 @@ class tabcontainer extends \booosta\ui\UI
     // show tabs header with labels
     foreach($this->tabs as $idx=>$tab):
       $label = $tab['label'] ? $this->t($tab['label']) : $this->t($tab['name']);
-      if($tab['icon']) $label = $tab['icon'] . " $label";
+
+      if($tab['icon']):
+        if(is_readable('tpl/tab_icon.tpl')) $tpl = file_get_contents('tpl/tab_icon.tpl');
+        elseif(is_readable('vendor/booosta/tabcontainer/src/tab_icon.tpl')) $tpl = file_get_contents('vendor/booosta/tabcontainer/src/tab_icon.tpl');
+        else $tpl = '{icon}';
+
+        $icon = str_replace('{icon}', $tab['icon'], $tpl);
+        $label = "$icon $label";
+      endif;
 
       $divid = 'tab' . md5($tab['name'] . $this->id);
-      $tabclass = $idx == $active ? 'active' : '';
-      $selected = $idx == $active ? 'true' : 'false';
+      if($active === 0) $active = "$divid-tab";   // if not set, select first item
+      $tabclass = "$divid-tab" == $active ? 'active' : '';
+      $selected = "$divid-tab" == $active ? 'true' : 'false';
+      #b::debug("divid: $divid, active: $active");
 
       $code .= str_replace(['{label}', '{divid}', '{tabclass}', '{selected}'], [$label, $divid, $tabclass, $selected], $tabcode);
     endforeach;
@@ -98,7 +108,7 @@ class tabcontainer extends \booosta\ui\UI
       endif;
 
       $divid = 'tab' . md5($tab['name'] . $this->id);
-      $contentclass = $idx == $active ? 'show active' : '';
+      $contentclass = "$divid-tab" == $active ? 'show active' : '';
       $code .= str_replace(['{contentclass}', '{divid}', '{content}'], [$contentclass, $divid, $content], $contentcode);
     endforeach;
 
