@@ -17,7 +17,7 @@
     "minimum-stability": "dev",
     "require": {
         "php": ">=8.0.0",
-        "booosta/webapp": "dev-master",
-        "booosta/ui": "dev-master"
+        "booosta/webapp": "^4.0",
+        "booosta/ui": "^4.0"
     }
 }
